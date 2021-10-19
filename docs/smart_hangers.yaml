@@ -1,0 +1,231 @@
+openapi: 3.0.1
+info:
+  title: Hanger Project
+  description: Spicy API
+  version: 1.0.0
+servers:
+  - url: 'https://api.example.com'
+paths:
+  /hangers:
+    get:
+      summary: Returns a list of all RFIDs present in the database and their assosciated temperature.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArrayOfHangers'
+
+    post:
+      summary: Register a new piece of clothing with an RFID tag.
+      requestBody:
+        description: JSON Object specifying the piece of clothing.
+        required: true
+        content:
+          applicatoin/json:
+            schema:
+              $ref: '#/components/schemas/Hanger'
+      responses:
+        '200':
+          description: Returns the same JSON object in case of success.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Hanger'
+
+  /hangers/{rfid}:
+    delete:
+      summary: Delete a piece of clothing from the database.
+      parameters:
+        - in: path
+          name: rfid
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfull deletion of one clothing item.
+
+
+
+  /recommendations:
+    get:
+      summary: Returns a list of RFIDs of recommended clothes.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArrayOfHangers'
+
+  /sensor_data:
+   post:
+     summary: Submit sesnsor data for storage in the database.
+     requestBody:
+       description: Sensor Data
+       required: true
+       content:
+         application/json:
+           schema:
+             $ref: '#/components/schemas/SensorData'
+     responses:
+       '200':
+         description: OK
+
+  /status:
+    get:
+      summary: Check whether the user has began the clothing selection process
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+
+    patch:
+      summary: Sets a boolean value that will indicate whether the clothing selecltion process is ongoing.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Status'
+      responses:
+        '200':
+          description: OK
+
+  /calendar:
+    get:
+      summary: Retrieve a list of all scheduled activities
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CalendarEntry'
+    post:
+      summary: Submit a new activity to the database.
+      requestBody:
+        description: |
+          ## Request Body Parameters
+          * location_name - The name of the location that the user is planning to visit
+          * description - The description of the activity
+          * date-time - The date-time in format of ISO8601 and specified in RFC 3339, section 5.6.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CalendarEntry'
+      responses:
+        '200':
+          description: Returns the submitted JSON object.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StoredCalendarEntry'
+        '400':
+          description: One of the possible errors is that Google Maps was not able to resolve the location_name to a single location. Anyway, just be expected for the app to handle error 400.
+
+components:
+  schemas:
+
+    CalendarEntry:
+      type: object
+      properties:
+        location_name:
+          type: string
+        description:
+          type: string
+        date-time:
+          description: The date-time should be specified in the format defined by ISO8601. Also specified in RFC 3339, section 5.6.
+          type: string
+          format: date-time
+      example:
+        location_name: 'Cinema, Enschede'
+        description: 'Some movie'
+        date-time: '2017-07-21T17:32:28Z'
+
+    StoredCalendarEntry:
+      type: object
+      properties:
+        location_name:
+          type: string
+        description:
+          type: string
+        location:
+          $ref: '#/components/schemas/Location'
+        date-time:
+          description: The date-time should be specified in the format defined by ISO8601. Also specified in RFC 3339, section 5.6.
+          type: string
+          format: date-time
+      example:
+        location_name: 'Cinema, Enschede'
+        description: 'Some movie'
+        date-time: '2017-07-21T17:32:28Z'
+        location:
+          latitude: '-49.02365'
+          longitude: '96.43831'
+
+
+    Status:
+      type: object
+      properties:
+          status:
+            type: boolean
+
+    Location:
+      type: object
+      properties:
+        latitude:
+          type: number
+        longitude:
+          type: number
+
+    SensorData:
+      type: object
+      properties:
+        external_temperature:
+          type: number
+        body_temperature:
+          type: number
+        location:
+          $ref: '#/components/schemas/Location'
+      example:
+        external_temperature: 17.0
+        body_temperature: 36.0
+        location:
+          latitude: 46.45265
+          longitude: 153.11516
+
+    Hanger:
+      type: object
+      properties:
+        rfid:
+          type: string
+        temperature:
+          type: number
+        type:
+          type: string
+      example:
+        rfid: '123e4567-e89b-12d3-a456-426614174000'
+        temperature: 26.0
+        type: 't-shirt'
+
+    ArrayOfHangers:
+      type: array
+      items:
+        $ref: '#/components/schemas/Hanger'
+      example:
+        - rfid: '123e4567-e89b-12d3-a456-426614174000'
+          temperature: 10.0
+          type: 'sweater'
+        - rfid: '689dfa28-3018-11ec-8d3d-0242ac130003'
+          temperature: 20.0
+          type: 'jeans'
+
+
+
+
