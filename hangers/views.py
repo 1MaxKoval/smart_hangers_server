@@ -7,3 +7,6 @@ from django.shortcuts import render
 @api_view(['GET'])
 def hello_view(request):
     return Response(data={'message': 'Hello World!'})
+
+def test_commit_func():
+    return None
