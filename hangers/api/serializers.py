@@ -1,4 +1,4 @@
-from rest_framework.serializers import HyperlinkedModelSerializer
+from rest_framework.serializers import HyperlinkedModelSerializer, ModelSerializer
 from hangers import models
 
 
@@ -30,10 +30,10 @@ class HangerSerializer(HyperlinkedModelSerializer):
         }
 
 
-class StatusSerializer(HyperlinkedModelSerializer):
+class StatusSerializer(ModelSerializer):
     class Meta:
         model = models.Status
-        fields = ['url', 'status']
+        fields = ['status']
 
 
 class CalendarEntrySerializer(HyperlinkedModelSerializer):
