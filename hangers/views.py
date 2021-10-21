@@ -19,7 +19,6 @@ class StatusView(APIView):
         queryset = Status.objects.all()
         if len(queryset) != 0:
             return Response(data={'error': 'The status has already been created!'}, status=status.HTTP_400_BAD_REQUEST)
-        breakpoint()
         serializer = StatusSerializer(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
         serializer.save()
