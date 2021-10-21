@@ -4,9 +4,10 @@ info:
   description: Spicy API
   version: 1.0.0
 servers:
-  - url: 'https://api.example.com'
+  - url: 'https://immense-anchorage-52068.herokuapp.com/'
+
 paths:
-  /hangers:
+  /app/hangers:
     get:
       summary: Returns a list of all RFIDs present in the database and their assosciated temperature.
       responses:
@@ -16,6 +17,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ArrayOfHangers'
+        '4XX':
+          $ref: '#/components/responses/UserError'
+        '5XX':
+          $ref: '#/components/responses/ServerError'
+
 
     post:
       summary: Register a new piece of clothing with an RFID tag.
@@ -33,23 +39,33 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Hanger'
+        '4XX':
+          $ref: '#/components/responses/UserError'
+        '5XX':
+          $ref: '#/components/responses/ServerError'
 
-  /hangers/{rfid}:
+
+  /app/hangers/{id}:
     delete:
       summary: Delete a piece of clothing from the database.
       parameters:
         - in: path
-          name: rfid
+          name: id
           required: true
           schema:
-            type: string
+            type: integer
       responses:
         '200':
           description: Successfull deletion of one clothing item.
+        '4XX':
+          $ref: '#/components/responses/UserError'
+        '5XX':
+          $ref: '#/components/responses/ServerError'
 
 
 
-  /recommendations:
+
+  /app/recommendations:
     get:
       summary: Returns a list of RFIDs of recommended clothes.
       responses:
@@ -58,9 +74,21 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ArrayOfHangers'
+                type: array
+                description: A list of recommended RFIDs
+                items:
+                  type: string
+                example:
+                  - 'bb963d5c-3262-11ec-8d3d-0242ac130003'
+                  - '7c193550-3265-11ec-8d3d-0242ac130003'
+                  - 'e1a4d4f0-9e1a-4d51-883b-6249a8bcafe8'
+        '4XX':
+          $ref: '#/components/responses/UserError'
+        '5XX':
+          $ref: '#/components/responses/ServerError'
 
-  /sensor_data:
+
+  /app/sensor_data:
    post:
      summary: Submit sesnsor data for storage in the database.
      requestBody:
@@ -69,12 +97,22 @@ paths:
        content:
          application/json:
            schema:
-             $ref: '#/components/schemas/SensorData'
+             $ref: '#/components/schemas/SensorPoint'
      responses:
        '200':
+         content:
+           application/json:
+             schema:
+               $ref: '#/components/schemas/SensorPoint'
          description: OK
+       '4XX':
+         $ref: '#/components/responses/UserError'
+       '5XX':
+         $ref: '#/components/responses/ServerError'
 
-  /status:
+
+
+  /app/status:
     get:
       summary: Check whether the user has began the clothing selection process
       responses:
@@ -84,6 +122,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Status'
+        '4XX':
+          $ref: '#/components/responses/UserError'
+        '5XX':
+          $ref: '#/components/responses/ServerError'
+
 
     patch:
       summary: Sets a boolean value that will indicate whether the clothing selecltion process is ongoing.
@@ -96,8 +139,12 @@ paths:
       responses:
         '200':
           description: OK
+        '4XX':
+          $ref: '#/components/responses/UserError'
+        '5XX':
+          $ref: '#/components/responses/ServerError'
 
-  /calendar:
+  /app/calendar:
     get:
       summary: Retrieve a list of all scheduled activities
       responses:
@@ -110,11 +157,6 @@ paths:
     post:
       summary: Submit a new activity to the database.
       requestBody:
-        description: |
-          ## Request Body Parameters
-          * location_name - The name of the location that the user is planning to visit
-          * description - The description of the activity
-          * date-time - The date-time in format of ISO8601 and specified in RFC 3339, section 5.6.
         content:
           application/json:
             schema:
@@ -125,49 +167,47 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/StoredCalendarEntry'
-        '400':
-          description: One of the possible errors is that Google Maps was not able to resolve the location_name to a single location. Anyway, just be expected for the app to handle error 400.
+                $ref: '#/components/schemas/CalendarEntry'
+        '4XX':
+          $ref: '#/components/responses/UserError'
+        '5XX':
+          $ref: '#/components/responses/ServerError'
 
 components:
+  responses:
+
+    ServerError:
+      description: Server error
+
+    UserError:
+      description: User error
+
+
   schemas:
 
     CalendarEntry:
       type: object
       properties:
         location_name:
+          description: Maximum 100 characters long.
           type: string
         description:
           type: string
-        date-time:
+        date_time:
           description: The date-time should be specified in the format defined by ISO8601. Also specified in RFC 3339, section 5.6.
           type: string
           format: date-time
+        latitude:
+          description: Maximum 20 digits of which maximum 15 can be decimal places.
+          type: number
+        longitude:
+          description: Maximum 20 digits of which maximum 15 can be decimal places.
       example:
         location_name: 'Cinema, Enschede'
         description: 'Some movie'
         date-time: '2017-07-21T17:32:28Z'
-
-    StoredCalendarEntry:
-      type: object
-      properties:
-        location_name:
-          type: string
-        description:
-          type: string
-        location:
-          $ref: '#/components/schemas/Location'
-        date-time:
-          description: The date-time should be specified in the format defined by ISO8601. Also specified in RFC 3339, section 5.6.
-          type: string
-          format: date-time
-      example:
-        location_name: 'Cinema, Enschede'
-        description: 'Some movie'
-        date-time: '2017-07-21T17:32:28Z'
-        location:
-          latitude: '-49.02365'
-          longitude: '96.43831'
+        latitude: 46.45265
+        longitude: 153.11516
 
 
     Status:
@@ -176,38 +216,42 @@ components:
           status:
             type: boolean
 
-    Location:
+    SensorPoint:
       type: object
       properties:
-        latitude:
-          type: number
-        longitude:
-          type: number
-
-    SensorData:
-      type: object
-      properties:
+        bssid:
+          type: string
+          description: BSSID/MAC address of the AP. Must be 17 characters long.
         external_temperature:
+          description: The temperature value must consist of maximum 10 digits, of which maximum 3 can be decimal places.
           type: number
         body_temperature:
+          description: The temperature value must consist of maximum 10 digits, of which maximum 3 can be decimal places.
           type: number
-        location:
-          $ref: '#/components/schemas/Location'
+        latitude:
+          description: Maximum 20 digits of which maximum 15 can be decimal places.
+          type: number
+        longitude:
+          description: Maximum 20 digits of which maximum 15 can be decimal places.
+          type: number
       example:
         external_temperature: 17.0
         body_temperature: 36.0
-        location:
-          latitude: 46.45265
-          longitude: 153.11516
+        latitude: 46.45265
+        longitude: 153.11516
+        bssid: 'F9:AC:3A:7E:45:1E'
 
     Hanger:
       type: object
       properties:
         rfid:
+          description: The RFID/UUID must be 36 characters long.
           type: string
         temperature:
+          description: The temperature value must consist of maximum 10 digits, of which maximum 3 can be decimal places.
           type: number
         type:
+          description: String of maximum length 40.
           type: string
       example:
         rfid: '123e4567-e89b-12d3-a456-426614174000'
