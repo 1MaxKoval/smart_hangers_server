@@ -6,6 +6,7 @@ class SensorPoint(models.Model):
     body_temperature = models.DecimalField(max_digits=10, decimal_places=3)
     latitude = models.DecimalField(max_digits=20, decimal_places=15)
     longitude = models.DecimalField(max_digits=20, decimal_places=15)
+    bssid = models.CharField(max_length=17)
 
 
 class Hanger(models.Model):
