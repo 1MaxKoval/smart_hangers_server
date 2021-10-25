@@ -90,7 +90,6 @@ def get_soonest_event() -> Optional[CalendarEntry]:
     """
     current_date_time = timezone.now()
     entries = CalendarEntry.objects.filter(date_time__gt=timezone.now())
-    breakpoint()
     if len(entries) == 0:
         return None
     else:
