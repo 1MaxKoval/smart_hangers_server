@@ -40,24 +40,17 @@ def find_location(location: Tuple[float, float]) -> Optional[SensorPoint]:
     for i in range(0, len(rows)):
         d_distance = haversine_formula(location, (float(rows[i].latitude), float(rows[i].longitude)))
         if d_distance < 500.0:
-            if smallest_distance is None:
-                smallest_distance = d_distance
-                closest_point = rows[i]
-            elif d_distance < smallest_distance:
+            if smallest_distance is None or d_distance < smallest_distance:
                 smallest_distance = d_distance
                 closest_point = rows[i]
     return closest_point
 
 
-
-
-
-
 def recommend_clothing_on_temp(temperature: float = None) -> List[str]:
     """
     Get clothing from the database based on the temperature the user recorded previously.
-
     """
+    pass
 
 
 def haversine_formula(location_a: Tuple[float, float], location_b: Tuple[float, float]) -> float:
