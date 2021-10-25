@@ -19,16 +19,11 @@ def calculate_difference(location_a: Tuple[float, float], location_b: Tuple[floa
     """
     Given 2 coordinates (latitude, longitude) calculates the shortest distance between them.
     """
-    # Convert to Radians
-    # location_a[0], location_a[1] = location_a[0] * math.pi / 180, location_a[1] * math.pi / 180
-    # location_b[0], location_b[1] = location_b[0] * math.pi / 180, location_b[1] * math.pi / 180
 
     # Reading latitude and longitude
     phi_1, lambda_1 = location_a[0] * math.pi / 180, location_a[1] * math.pi / 180
     phi_2, lambda_2 = location_b[0] * math.pi / 180, location_b[1] * math.pi / 180
 
-    # phi_1, lambda_1 = location_a[0], location_a[1]
-    # phi_2, lambda_2 = location_b[0], location_b[1]
     # Calculate difference
     d_phi = phi_2 - phi_1
     d_lambda = lambda_2 - lambda_1
