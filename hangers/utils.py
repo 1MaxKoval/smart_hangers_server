@@ -1,6 +1,7 @@
 from hangers.models import CalendarEntry, SensorPoint
 from decimal import Decimal
 from typing import List, Tuple, Optional
+from django.utils import timezone
 import math
 
 # Radius of the Earth
@@ -12,6 +13,13 @@ def recommend_clothing() -> List[str]:
     Returns a list of clothing RFIDs depending on the upcoming event set in the Calendar.
     """
     # TODO: Get a CalendarEvent and read its location.
+    pass
+
+
+def recommend_clothing_on_temp(temperature: float = None) -> List[str]:
+    """
+    Get clothing from the database based on the temperature the user recorded previously.
+    """
     pass
 
 
@@ -46,16 +54,11 @@ def find_location(location: Tuple[float, float]) -> Optional[SensorPoint]:
     return closest_point
 
 
-def recommend_clothing_on_temp(temperature: float = None) -> List[str]:
-    """
-    Get clothing from the database based on the temperature the user recorded previously.
-    """
-    pass
-
-
 def haversine_formula(location_a: Tuple[float, float], location_b: Tuple[float, float]) -> float:
     """
     Given 2 coordinates (latitude, longitude) calculates the shortest distance between them.
+
+    Haversine formula
     """
 
     # Reading latitude and longitude
@@ -65,10 +68,31 @@ def haversine_formula(location_a: Tuple[float, float], location_b: Tuple[float, 
     # Calculate difference
     d_phi = phi_2 - phi_1
     d_lambda = lambda_2 - lambda_1
-    # Apply haversine http://www.movable-type.co.uk/scripts/latlong.html
+    # Apply haversine
     a = math.sin(d_phi / 2) * math.sin(d_phi / 2) + math.cos(phi_1) * math.cos(phi_2) * math.sin(
         d_lambda / 2) * math.sin(d_lambda / 2)
     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
     # Distance in meters
     d = R * c
     return d
+
+
+def get_soonest_event() -> Optional[CalendarEntry]:
+    """
+    Retrieves the soonest event from the database.
+
+    Returns
+    -------
+    None
+        Case there are no upcoming events
+    CalendarEntry
+        Entry of the soonest upcoming event
+    """
+    current_date_time = timezone.now()
+    entries = CalendarEntry.objects.filter(date_time__gt=timezone.now())
+    breakpoint()
+    if len(entries) == 0:
+        return None
+    else:
+        # Since CalendarEntry is sorted by the meta option on the model
+        return entries[0]

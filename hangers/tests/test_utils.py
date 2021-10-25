@@ -1,6 +1,9 @@
 from rest_framework.test import APISimpleTestCase, APITestCase
 from hangers.models import SensorPoint, CalendarEntry
-from hangers.utils import haversine_formula, find_location
+from hangers.utils import haversine_formula, find_location, get_soonest_event
+from datetime import timedelta
+from django.utils import timezone
+import unittest
 
 
 # SF : 37.760154, -122.450575
@@ -64,3 +67,38 @@ class TestRecommendations(APITestCase):
         related_location = find_location(location)
         self.assertEqual(float(related_location.latitude), 52.237768)
         self.assertEqual(float(related_location.longitude), 6.840477)
+
+    def test_get_soonest_event(self):
+        """
+        Asserts that get_soonest_event retrieves the soonest event from the database relative to the current time.
+        """
+        now = timezone.now()
+        datetime1 = now + timedelta(hours=2)
+        datetime2 = now + timedelta(hours=3)
+        datetime3 = now - timedelta(hours=2)
+        entry1 = {
+            'location_name': 'soonest_event',
+            'description': 'some_description',
+            'date_time': datetime1,
+            'latitude': 2.334,
+            'longitude': 3.23122
+        }
+        entry2 = {
+            'location_name': 'some_name',
+            'description': 'some_description',
+            'date_time': datetime2,
+            'latitude': 2.334,
+            'longitude': 3.23122
+        }
+        entry3 = {
+            'location_name': 'some_name',
+            'description': 'some_description',
+            'date_time': datetime3,
+            'latitude': 2.334,
+            'longitude': 3.23122
+        }
+        CalendarEntry.objects.create(**entry1)
+        CalendarEntry.objects.create(**entry2)
+        CalendarEntry.objects.create(**entry3)
+        event = get_soonest_event()
+        self.assertEquals(event.date_time, datetime1)

@@ -20,6 +20,8 @@ class Status(models.Model):
 
 
 class CalendarEntry(models.Model):
+    class Meta:
+        ordering = ['date_time']
     location_name = models.CharField(max_length=100)
     description = models.TextField()
     date_time = models.DateTimeField()
