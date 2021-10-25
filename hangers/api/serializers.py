@@ -46,5 +46,3 @@ class CalendarEntrySerializer(HyperlinkedModelSerializer):
             'latitude': {'max_digits': 20, 'decimal_places': 15},
             'longitude': {'max_digits': 20, 'decimal_places': 15},
         }
-
-

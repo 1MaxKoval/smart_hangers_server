@@ -44,6 +44,7 @@ class StatusView(APIView):
 @api_view(['GET'])
 def recommendations(request):
     all_hangers = Hanger.objects.all()
+    # TODO: Add validation
     return Response(data=[hanger.rfid for hanger in all_hangers])
 
 
