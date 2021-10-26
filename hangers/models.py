@@ -2,16 +2,17 @@ from django.db import models
 
 
 class SensorPoint(models.Model):
-    external_temperature = models.DecimalField(max_digits=10, decimal_places=3)
-    body_temperature = models.DecimalField(max_digits=10, decimal_places=3)
-    latitude = models.DecimalField(max_digits=20, decimal_places=15)
-    longitude = models.DecimalField(max_digits=20, decimal_places=15)
+    temperature = models.FloatField()
+    gsr_reading = models.FloatField()
+    latitude = models.FloatField()
+    longitude = models.FloatField()
     bssid = models.CharField(max_length=17)
 
 
 class Hanger(models.Model):
     rfid = models.CharField(max_length=36)
-    temperature = models.DecimalField(max_digits=10, decimal_places=3)
+    lower_bound_temperature = models.FloatField()
+    upper_bound_temperature = models.FloatField()
     type = models.CharField(max_length=40)
 
 
@@ -25,6 +26,10 @@ class CalendarEntry(models.Model):
     location_name = models.CharField(max_length=100)
     description = models.TextField()
     date_time = models.DateTimeField()
-    latitude = models.DecimalField(max_digits=20, decimal_places=15)
-    longitude = models.DecimalField(max_digits=20, decimal_places=15)
+    latitude = models.FloatField()
+    longitude = models.FloatField()
+
+
+class TemperatureAtLocation(models.Model):
+    temperature = models.FloatField()
 

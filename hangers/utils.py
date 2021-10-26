@@ -23,6 +23,10 @@ def recommend_clothing_on_temp(temperature: float = None) -> List[str]:
     pass
 
 
+def estimate_temperature() -> float:
+    pass
+
+
 def find_location(location: Tuple[float, float]) -> Optional[SensorPoint]:
     """
     Perform a linear search on the SensorPoint table and find the SensorPoint instance closest to the provided location.
@@ -88,7 +92,6 @@ def get_soonest_event() -> Optional[CalendarEntry]:
     CalendarEntry
         Entry of the soonest upcoming event
     """
-    current_date_time = timezone.now()
     entries = CalendarEntry.objects.filter(date_time__gt=timezone.now())
     if len(entries) == 0:
         return None

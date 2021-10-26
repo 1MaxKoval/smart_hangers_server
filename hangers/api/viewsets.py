@@ -1,7 +1,8 @@
 from rest_framework import viewsets
-from rest_framework.renderers import JSONRenderer
-from hangers.models import Hanger, SensorPoint, Status, CalendarEntry
-from hangers.api.serializers import HangerSerializer, SensorPointSerializer, CalendarEntrySerializer, StatusSerializer
+
+from hangers.api.serializers import HangerSerializer, SensorPointSerializer, CalendarEntrySerializer, \
+    TemperatureAtLocationSerializer
+from hangers.models import Hanger, SensorPoint, CalendarEntry
 
 
 class HangerViewSet(viewsets.ModelViewSet):
@@ -19,4 +20,6 @@ class SensorPointViewSet(viewsets.ModelViewSet):
     serializer_class = SensorPointSerializer
 
 
-
+class TemperatureAtLocation(viewsets.ModelViewSet):
+    queryset = SensorPoint.objects.all()
+    serializer_class = TemperatureAtLocationSerializer
