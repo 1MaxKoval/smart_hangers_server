@@ -30,15 +30,15 @@ class TestRecommendations(APITestCase):
     def setUp(self):
         # Kennis Park
         sensor_point1 = {
-            'external_temperature': 25.0,
-            'body_temperature': 36.0,
+            'temperature': 25.0,
+            'gsr_reading': 36.0,
             'latitude': 52.237979,
             'longitude': 6.840117
         }
         # Twekkelerveld
         sensor_point2 = {
-            'external_temperature': 25.0,
-            'body_temperature': 36.0,
+            'temperature': 25.0,
+            'gsr_reading': 36.0,
             'latitude': 52.229335,
             'longitude': 6.857358
         }
@@ -58,8 +58,8 @@ class TestRecommendations(APITestCase):
         """
         location = (52.237788, 6.840311)
         closest_to_location = {
-            'external_temperature': 25.0,
-            'body_temperature': 36.0,
+            'temperature': 25.0,
+            'gsr_reading': 36.0,
             'latitude': 52.237768,
             'longitude': 6.840477
         }
