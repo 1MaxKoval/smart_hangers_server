@@ -5,10 +5,9 @@ from hangers import models
 class SensorPointSerializer(HyperlinkedModelSerializer):
     class Meta:
         model = models.SensorPoint
-        fields = ['url', 'temperature', 'gsr_reading', 'latitude', 'longitude', 'bssid']
+        fields = ['url', 'temperature', 'gsr_reading', 'latitude', 'longitude', 'mac_address']
         extra_kwargs = {
             'url': {'read_only': True},
-            'bssid': {'max_length': 17, 'min_length': 17},
         }
 
 
@@ -18,9 +17,6 @@ class HangerSerializer(HyperlinkedModelSerializer):
         fields = ['url', 'rfid', 'lower_bound_temperature', 'upper_bound_temperature', 'type']
         extra_kwargs = {
             'url': {'read_only': True},
-            # TODO: Add a UUID validator.
-            'rfid': {'max_length': 36, 'min_length': 36, 'trim_whitespace': True},
-            'type': {'max_length': 40, 'min_length': 1},
         }
 
 
@@ -36,7 +32,6 @@ class CalendarEntrySerializer(HyperlinkedModelSerializer):
         fields = ['url', 'location_name', 'description', 'date_time', 'latitude', 'longitude']
         extra_kwargs = {
             'url': {'read_only': True},
-            'location_name': {'max_length': 100},
         }
 
 

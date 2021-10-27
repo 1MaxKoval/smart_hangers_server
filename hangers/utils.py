@@ -1,5 +1,6 @@
-from hangers.models import CalendarEntry, SensorPoint
-from decimal import Decimal
+from rest_framework import status
+from hangers.models import CalendarEntry, SensorPoint, TemperatureAtLocation, Hanger
+from hangers.api.exceptions import HangerAppException
 from typing import List, Tuple, Optional
 from django.utils import timezone
 import math
@@ -11,20 +12,71 @@ R = 6381e3
 def recommend_clothing() -> List[str]:
     """
     Returns a list of clothing RFIDs depending on the upcoming event set in the Calendar.
+
+    Raises
+    ------
+    HangerAppExceptions
+        See the other functions in this file
+
     """
-    # TODO: Get a CalendarEvent and read its location.
-    pass
+    event = get_soonest_event()
+    closest_sensor_point = find_location((event.latitude, event.longitude))
+    if closest_sensor_point is None:
+        return list()
+    else:
+        clothing = recommend_clothing_on_temp(estimate_temperature(closest_sensor_point))
+        return clothing
 
 
 def recommend_clothing_on_temp(temperature: float = None) -> List[str]:
     """
     Get clothing from the database based on the temperature the user recorded previously.
+
+    Filters through the clothing in the database by seeing if the given temperature value falls within the temperature
+    range of those clothes.
+
+    Returns
+    -------
+    List[str]
+        A list of UIDs of clothes
+
     """
-    pass
+    first_filter = Hanger.objects.filter(lower_bound_temperature__lte=temperature)
+    appropriate_clothing = first_filter.filter(upper_bound_temperature__gte=temperature)
+    return [piece_of_clothing.rfid for piece_of_clothing in appropriate_clothing]
 
 
-def estimate_temperature() -> float:
-    pass
+def estimate_temperature(point: SensorPoint) -> float:
+    """
+    Estimates the temperature that the clothing should be suitable for.
+
+    Raises
+    ------
+    HangerAppException
+        Thrown in the case the server is not able to fetch the temperature of the environment.
+    """
+    objects_with_the_same_bssid = SensorPoint.objects.filter(mac_address__icontains=point.mac_address)
+    total_temperature = 0
+    total_gsr = 0
+    for sensor_point in objects_with_the_same_bssid:
+        total_temperature += sensor_point.temperature
+        total_gsr += sensor_point.gsr_reading
+    avg_temp = total_temperature / len(objects_with_the_same_bssid)
+    avg_gsr = total_gsr / len(objects_with_the_same_bssid)
+    environment_temperatures = TemperatureAtLocation.objects.all()
+    if len(environment_temperatures) != 0:
+        location_temp_obj = environment_temperatures[0]
+    else:
+        raise HangerAppException(detail={'error': 'Unable to fetch environment temperature'},
+                                 code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    # Get the outside temperature from the 'API'
+    outside_temperature = location_temp_obj.temperature
+    if avg_gsr >= 130:
+        temperature_estimate = 30
+    else:
+        temperature_estimate = (outside_temperature * 0.7) + (avg_temp * 0.3)
+    # Returns the weighted average of both values
+    return temperature_estimate
 
 
 def find_location(location: Tuple[float, float]) -> Optional[SensorPoint]:
@@ -81,7 +133,7 @@ def haversine_formula(location_a: Tuple[float, float], location_b: Tuple[float, 
     return d
 
 
-def get_soonest_event() -> Optional[CalendarEntry]:
+def get_soonest_event() -> CalendarEntry:
     """
     Retrieves the soonest event from the database.
 
@@ -91,10 +143,16 @@ def get_soonest_event() -> Optional[CalendarEntry]:
         Case there are no upcoming events
     CalendarEntry
         Entry of the soonest upcoming event
+
+    Raises
+    ------
+    HangerAppException
+        Raised in the case there are no CalendarEvents in the database
     """
     entries = CalendarEntry.objects.filter(date_time__gt=timezone.now())
     if len(entries) == 0:
-        return None
+        raise HangerAppException(detail={'error': 'The calendar is empty!'},
+                                 code=status.HTTP_404_NOT_FOUND)
     else:
         # Since CalendarEntry is sorted by the meta option on the model
         return entries[0]
