@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from hangers.api.serializers import StatusSerializer
 from hangers.models import Status, Hanger
+from hangers import utils
 from rest_framework.decorators import api_view
 
 
@@ -43,9 +44,7 @@ class StatusView(APIView):
 
 @api_view(['GET'])
 def recommendations(request):
-    all_hangers = Hanger.objects.all()
-    # TODO: Add validation
-    return Response(data=[hanger.rfid for hanger in all_hangers])
+    return Response(data=utils.recommend_clothing())
 
 
 
