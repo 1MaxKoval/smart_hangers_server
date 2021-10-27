@@ -7,6 +7,6 @@ class BaseHangerException(APIException):
     default_detail = {'error': 'Server Error'}
 
 
-class HangerAppException(BaseHangerException):
+class HangerAppError(BaseHangerException):
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
     default_detail = {'error': 'Error occurred while contacting the Hanger API'}

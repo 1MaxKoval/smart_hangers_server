@@ -1,6 +1,6 @@
 from rest_framework import status
 from hangers.models import CalendarEntry, SensorPoint, TemperatureAtLocation, Hanger
-from hangers.api.exceptions import HangerAppException
+from hangers.api.exceptions import HangerAppError
 from typing import List, Tuple, Optional
 from django.utils import timezone
 import math
@@ -15,7 +15,7 @@ def recommend_clothing() -> List[str]:
 
     Raises
     ------
-    HangerAppExceptions
+    HangerAppError
         See the other functions in this file
 
     """
@@ -46,15 +46,29 @@ def recommend_clothing_on_temp(temperature: float = None) -> List[str]:
     return [piece_of_clothing.rfid for piece_of_clothing in appropriate_clothing]
 
 
-def estimate_temperature(point: SensorPoint) -> float:
+def get_environment_temperature(location: Tuple[float, float]) -> float:
     """
-    Estimates the temperature that the clothing should be suitable for.
+    Retrieves the temperature of the environment at a given location.
 
     Raises
     ------
-    HangerAppException
+    HangerAppError
         Thrown in the case the server is not able to fetch the temperature of the environment.
     """
+    environment_temperatures = TemperatureAtLocation.objects.all()
+    if len(environment_temperatures) != 0:
+        location_temp_obj = environment_temperatures[0]
+    else:
+        raise HangerAppError(detail={'error': 'Unable to fetch environment temperature'},
+                             code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    return location_temp_obj.temperature
+
+
+def estimate_temperature(point: SensorPoint) -> float:
+    """
+    Estimates the temperature that the clothing should be suitable for.
+    """
+    environment_temperature = get_environment_temperature((point.latitude, point.longitude))
     objects_with_the_same_bssid = SensorPoint.objects.filter(mac_address__icontains=point.mac_address)
     total_temperature = 0
     total_gsr = 0
@@ -63,18 +77,11 @@ def estimate_temperature(point: SensorPoint) -> float:
         total_gsr += sensor_point.gsr_reading
     avg_temp = total_temperature / len(objects_with_the_same_bssid)
     avg_gsr = total_gsr / len(objects_with_the_same_bssid)
-    environment_temperatures = TemperatureAtLocation.objects.all()
-    if len(environment_temperatures) != 0:
-        location_temp_obj = environment_temperatures[0]
-    else:
-        raise HangerAppException(detail={'error': 'Unable to fetch environment temperature'},
-                                 code=status.HTTP_500_INTERNAL_SERVER_ERROR)
     # Get the outside temperature from the 'API'
-    outside_temperature = location_temp_obj.temperature
     if avg_gsr >= 130:
         temperature_estimate = 30
     else:
-        temperature_estimate = (outside_temperature * 0.7) + (avg_temp * 0.3)
+        temperature_estimate = (environment_temperature * 0.7) + (avg_temp * 0.3)
     # Returns the weighted average of both values
     return temperature_estimate
 
@@ -146,13 +153,13 @@ def get_soonest_event() -> CalendarEntry:
 
     Raises
     ------
-    HangerAppException
+    HangerAppError
         Raised in the case there are no CalendarEvents in the database
     """
     entries = CalendarEntry.objects.filter(date_time__gt=timezone.now())
     if len(entries) == 0:
-        raise HangerAppException(detail={'error': 'The calendar is empty!'},
-                                 code=status.HTTP_404_NOT_FOUND)
+        raise HangerAppError(detail={'error': 'There are no upcoming events in the calendar!'},
+                             code=status.HTTP_404_NOT_FOUND)
     else:
         # Since CalendarEntry is sorted by the meta option on the model
         return entries[0]

@@ -1,9 +1,10 @@
 from rest_framework.test import APISimpleTestCase, APITestCase
 from hangers.models import SensorPoint, CalendarEntry, Hanger, TemperatureAtLocation
 from hangers.utils import haversine_formula, find_location, get_soonest_event, recommend_clothing_on_temp, \
-    estimate_temperature
+    estimate_temperature, recommend_clothing
 from datetime import timedelta
 from django.utils import timezone
+from hangers.api.exceptions import HangerAppError
 import unittest
 
 
@@ -115,6 +116,13 @@ class TestRecommendations(APITestCase):
         event = get_soonest_event()
         self.assertEquals(event.date_time, datetime1)
 
+    def test_get_soonest_event_empty_calendar(self):
+        """
+        Assert that an error is raised in the case there are no upcoming events in the calendar.
+        """
+        with self.assertRaises(HangerAppError) as cm:
+            event = get_soonest_event()
+
     def test_recommend_clothing_on_temp(self):
         """
         Asserts the functionality of the recommend_clothing_on_temp function.
@@ -169,5 +177,72 @@ class TestRecommendations(APITestCase):
         point = SensorPoint.objects.create(**new_sensor_point)
         self.assertEqual(estimate_temperature(point), 30)
 
+    def test_estimate_temperatures_no_environment_temp(self):
+        """
+        Asserts that an appropriate error is raised in the case the environment temperature is not available.
+        """
+        with self.assertRaises(HangerAppError) as cm:
+            estimate_temperature(self.sensor_point1)
+
+
+class IntegralRecommendationTest(APITestCase):
+
+    def setUp(self):
+        sensor_point1 = {
+            'temperature': 15.0,
+            'gsr_reading': 100.0,
+            'latitude': 52.237979,
+            'longitude': 6.840117,
+            'mac_address': '3c240a49-a6c2-42d8-b006-9665881e3aaa'
+        }
+        # Twekkelerveld
+        sensor_point2 = {
+            'temperature': 20.0,
+            'gsr_reading': 100.0,
+            'latitude': 52.229335,
+            'longitude': 6.857358,
+            'mac_address': '3c240a49-a6c2-42d8-b006-9665881e3aaa'
+        }
+        # SensorPoint with a different mac_address
+        sensor_point3 = {
+            'temperature': 30.0,
+            'gsr_reading': 100.0,
+            'latitude': 52.229335,
+            'longitude': 6.857358,
+            'mac_address': 'C8:1B:E3:07:6F:2E'
+        }
+        self.sensor_point1 = SensorPoint.objects.create(**sensor_point1)
+        self.sensor_point2 = SensorPoint.objects.create(**sensor_point2)
+        self.sensor_point3 = SensorPoint.objects.create(**sensor_point3)
+
+    def test_expected_usage(self):
+        now = timezone.now()
+        datetime1 = now + timedelta(hours=2)
+        entry1 = {
+            'location_name': 'Kennis Park',
+            'description': 'some_description',
+            'date_time': datetime1,
+            'latitude': 52.237979,
+            'longitude': 6.840117
+        }
+        t_shirt = {
+            'rfid': '6fcef5f8-db9d-462c-8445-c1784c4b2f3b',
+            'lower_bound_temperature': 15.0,
+            'upper_bound_temperature': 30.0,
+            'type': 't-shirt'
+        }
+        coat = {
+            'rfid': '3c240a49-a6c2-42d8-b006-9665881e3aaa',
+            'lower_bound_temperature': -5,
+            'upper_bound_temperature': 10,
+            'type': 'coat'
+        }
+        CalendarEntry.objects.create(**entry1)
+        Hanger.objects.create(**t_shirt)
+        Hanger.objects.create(**coat)
+        TemperatureAtLocation.objects.create(temperature=22)
+        recommended_clothing = recommend_clothing()
+        self.assertEqual(len(recommended_clothing), 1)
+        self.assertEqual(recommended_clothing[0], '6fcef5f8-db9d-462c-8445-c1784c4b2f3b')
 
 

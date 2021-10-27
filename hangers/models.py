@@ -10,7 +10,7 @@ class SensorPoint(models.Model):
 
     def __str__(self):
         return f'SensorPoint(temperature: {self.temperature}, gsr_reading: {self.gsr_reading}, ' \
-               f'latitude: {self.latitude}, longitude: {self.longitude}, bssid: {self.bssid})'
+               f'latitude: {self.latitude}, longitude: {self.longitude}, bssid: {self.mac_address})'
 
 
 class Hanger(models.Model):
