@@ -79,7 +79,7 @@ def estimate_temperature(point: SensorPoint) -> float:
     avg_gsr = total_gsr / len(objects_with_the_same_bssid)
     # Get the outside temperature from the 'API'
     if avg_gsr >= 130:
-        temperature_estimate = 30
+        temperature_estimate = environment_temperature + 10
     else:
         temperature_estimate = (environment_temperature * 0.7) + (avg_temp * 0.3)
     # Returns the weighted average of both values
