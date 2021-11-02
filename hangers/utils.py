@@ -1,4 +1,5 @@
 from rest_framework import status
+from datetime import timedelta
 from hangers.models import CalendarEntry, SensorPoint, TemperatureAtLocation, Hanger
 from hangers.api.exceptions import HangerAppError
 from typing import List, Tuple, Optional
@@ -156,7 +157,9 @@ def get_soonest_event() -> CalendarEntry:
     HangerAppError
         Raised in the case there are no CalendarEvents in the database
     """
-    entries = CalendarEntry.objects.filter(date_time__gt=timezone.now())
+    time_difference = timedelta(hours=1)
+    dutch_time = timezone.now() + time_difference
+    entries = CalendarEntry.objects.filter(date_time__gt=dutch_time)
     if len(entries) == 0:
         raise HangerAppError(detail={'error': 'There are no upcoming events in the calendar!'},
                              code=status.HTTP_404_NOT_FOUND)

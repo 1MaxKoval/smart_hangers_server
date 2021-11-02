@@ -85,10 +85,10 @@ class TestRecommendations(APITestCase):
         """
         Asserts that get_soonest_event retrieves the soonest event from the database relative to the current time.
         """
-        now = timezone.now()
-        datetime1 = now + timedelta(hours=2)
-        datetime2 = now + timedelta(hours=3)
-        datetime3 = now - timedelta(hours=2)
+        dutch_time = timezone.now() + timedelta(hours=1)
+        datetime1 = dutch_time + timedelta(hours=2)
+        datetime2 = dutch_time + timedelta(hours=3)
+        datetime3 = dutch_time - timedelta(hours=2)
         entry1 = {
             'location_name': 'soonest_event',
             'description': 'some_description',
@@ -175,7 +175,7 @@ class TestRecommendations(APITestCase):
         SensorPoint.objects.create(**new_sensor_point1)
         TemperatureAtLocation.objects.create(temperature=30)
         point = SensorPoint.objects.create(**new_sensor_point)
-        self.assertEqual(estimate_temperature(point), 30)
+        self.assertEqual(estimate_temperature(point), 40)
 
     def test_estimate_temperatures_no_environment_temp(self):
         """
