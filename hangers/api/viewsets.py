@@ -14,7 +14,7 @@ class HangerViewSet(viewsets.ModelViewSet):
 
 class CalendarEntryViewSet(viewsets.ModelViewSet):
     # Return all entries one hour ahead of UK central time (NL) time.
-    queryset = CalendarEntry.objects.filter(date_time_gte=timezone.now()+timedelta(hours=1))
+    queryset = CalendarEntry.objects.filter(date_time__gt=timezone.now()+timedelta(hours=1))
     serializer_class = CalendarEntrySerializer
 
 
