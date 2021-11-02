@@ -3,6 +3,8 @@ from rest_framework import viewsets
 from hangers.api.serializers import HangerSerializer, SensorPointSerializer, CalendarEntrySerializer, \
     TemperatureAtLocationSerializer
 from hangers.models import Hanger, SensorPoint, CalendarEntry
+from datetime import timedelta
+from django.utils import timezone
 
 
 class HangerViewSet(viewsets.ModelViewSet):
@@ -11,7 +13,8 @@ class HangerViewSet(viewsets.ModelViewSet):
 
 
 class CalendarEntryViewSet(viewsets.ModelViewSet):
-    queryset = CalendarEntry.objects.all()
+    # Return all entries one hour ahead of UK central time (NL) time.
+    queryset = CalendarEntry.objects.filter(date_time_gte=timezone.now()+timedelta(hours=1))
     serializer_class = CalendarEntrySerializer
 
 
