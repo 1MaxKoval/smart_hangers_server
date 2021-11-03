@@ -1,5 +1,6 @@
 from rest_framework import viewsets
-
+from rest_framework.response import Response
+from rest_framework.decorators import action
 from hangers.api.serializers import HangerSerializer, SensorPointSerializer, CalendarEntrySerializer, \
     TemperatureAtLocationSerializer
 from hangers.models import Hanger, SensorPoint, CalendarEntry
@@ -16,6 +17,11 @@ class CalendarEntryViewSet(viewsets.ModelViewSet):
     # Return all entries one hour ahead of UK central time (NL) time.
     queryset = CalendarEntry.objects.filter(date_time__gt=timezone.now()+timedelta(hours=1))
     serializer_class = CalendarEntrySerializer
+
+    @action(detail=False, methods=['delete'])
+    def delete_all_events(self, request):
+        CalendarEntry.objects.all().delete()
+        return Response({'success': 'deleted all events from the calendar'})
 
 
 class SensorPointViewSet(viewsets.ModelViewSet):
