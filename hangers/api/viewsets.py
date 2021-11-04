@@ -12,6 +12,11 @@ class HangerViewSet(viewsets.ModelViewSet):
     queryset = Hanger.objects.all()
     serializer_class = HangerSerializer
 
+    @action(detail=False, methods=['delete'])
+    def delete_all_hangers(self, request):
+        Hanger.objects.all().delete()
+        return Response({'success': 'deleted all Hanger objects from the database'})
+
 
 class CalendarEntryViewSet(viewsets.ModelViewSet):
     # Return all entries one hour ahead of UK central time (NL) time.
