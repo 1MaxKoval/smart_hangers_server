@@ -23,8 +23,9 @@ def recommend_clothing() -> List[str]:
     """
     event = get_soonest_event()
     closest_sensor_point = find_location((event.latitude, event.longitude))
+    # Use the environment temperature as the temperature estimate
     if closest_sensor_point is None:
-        return list()
+        return recommend_clothing_on_temp(get_environment_temperature((event.latitude, event.longitude)))
     else:
         clothing = recommend_clothing_on_temp(estimate_temperature(closest_sensor_point))
         return clothing
