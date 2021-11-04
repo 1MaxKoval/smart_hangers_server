@@ -8,6 +8,7 @@ import math
 
 # Radius of the Earth
 R = 6381e3
+GSR_THRESHOLD = 130
 
 
 def recommend_clothing() -> List[str]:
@@ -79,7 +80,7 @@ def estimate_temperature(point: SensorPoint) -> float:
     avg_temp = total_temperature / len(objects_with_the_same_bssid)
     avg_gsr = total_gsr / len(objects_with_the_same_bssid)
     # Get the outside temperature from the 'API'
-    if avg_gsr >= 130:
+    if avg_gsr >= GSR_THRESHOLD:
         temperature_estimate = environment_temperature + 10
     else:
         temperature_estimate = (environment_temperature * 0.7) + (avg_temp * 0.3)
