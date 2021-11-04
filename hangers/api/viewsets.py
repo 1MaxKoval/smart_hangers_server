@@ -20,7 +20,7 @@ class HangerViewSet(viewsets.ModelViewSet):
 
 class CalendarEntryViewSet(viewsets.ModelViewSet):
     # Return all entries one hour ahead of UK central time (NL) time.
-    queryset = CalendarEntry.objects.filter(date_time__gt=timezone.now()+timedelta(hours=1))
+    queryset = CalendarEntry.objects.filter(date_time__gt=timezone.now() + timedelta(hours=1))
     serializer_class = CalendarEntrySerializer
 
     @action(detail=False, methods=['delete'])
@@ -32,6 +32,11 @@ class CalendarEntryViewSet(viewsets.ModelViewSet):
 class SensorPointViewSet(viewsets.ModelViewSet):
     queryset = SensorPoint.objects.all()
     serializer_class = SensorPointSerializer
+
+    @action(detail=False, methods=['delete'])
+    def delete_all_hangers(self, request):
+        SensorPoint.objects.all().delete()
+        return Response({'success': 'deleted all sensor points'})
 
 
 class TemperatureAtLocation(viewsets.ModelViewSet):
