@@ -8,7 +8,7 @@ import math
 
 # Radius of the Earth
 R = 6381e3
-GSR_THRESHOLD = 130
+GSR_THRESHOLD = 250
 
 
 def recommend_clothing() -> List[str]:
