@@ -45,7 +45,7 @@ class StatusView(APIView):
 class TemperatureAtLocationView(APIView):
 
     def post(self, request):
-        queryset = Status.objects.all()
+        queryset = TemperatureAtLocation.objects.all()
         # Create a new TemperatureLocation
         if len(queryset) == 0:
             serializer = TemperatureAtLocationSerializer(data=request.data)
