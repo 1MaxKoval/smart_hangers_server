@@ -53,7 +53,7 @@ def recommend_clothing_on_temp(temperature: float = None) -> List[str]:
     return [piece_of_clothing.rfid for piece_of_clothing in appropriate_clothing]
 
 
-def get_environment_temperature(location:Tuple[float, float] = None) -> float:
+def get_environment_temperature(location: Tuple[float, float] = None) -> float:
     """
     Retrieves the temperature of the environment at a given location.
 
@@ -81,7 +81,7 @@ def estimate_temperature(point: SensorPoint) -> float:
     """
     Estimates the temperature that the clothing should be suitable for.
     """
-    environment_temperature = get_environment_temperature()
+    environment_temperature = get_environment_temperature((point.latitude, point.longitude))
     objects_with_the_same_bssid = SensorPoint.objects.filter(mac_address__icontains=point.mac_address)
     total_temperature = 0
     total_gsr = 0

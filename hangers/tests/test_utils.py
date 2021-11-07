@@ -197,7 +197,7 @@ class TestGetEnvironmentTemperature(APITestCase):
 
     def test_api_environment_temperature(self) -> None:
         TemperatureAtLocation.objects.create(temperature=10.0)
-        z = get_environment_temperature((48.8567, 2.3508))
+        z = get_environment_temperature((23.560830, -102.647347))
 
 
 class IntegralRecommendationTest(APITestCase):
