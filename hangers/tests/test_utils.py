@@ -1,7 +1,7 @@
 from rest_framework.test import APISimpleTestCase, APITestCase
 from hangers.models import SensorPoint, CalendarEntry, Hanger, TemperatureAtLocation
 from hangers.utils import haversine_formula, find_location, get_soonest_event, recommend_clothing_on_temp, \
-    estimate_temperature, recommend_clothing
+    estimate_temperature, recommend_clothing, get_environment_temperature
 from datetime import timedelta
 from django.utils import timezone
 from hangers.api.exceptions import HangerAppError
@@ -185,6 +185,21 @@ class TestRecommendations(APITestCase):
             estimate_temperature(self.sensor_point1)
 
 
+class TestGetEnvironmentTemperature(APITestCase):
+
+    def setUp(self) -> None:
+        pass
+
+    def test_get_environment_temperature(self) -> None:
+        TemperatureAtLocation.objects.create(temperature=10.0)
+        z = get_environment_temperature()
+        self.assertEqual(z, 10)
+
+    def test_api_environment_temperature(self) -> None:
+        TemperatureAtLocation.objects.create(temperature=10.0)
+        z = get_environment_temperature((48.8567, 2.3508))
+
+
 class IntegralRecommendationTest(APITestCase):
 
     def setUp(self):
@@ -244,5 +259,3 @@ class IntegralRecommendationTest(APITestCase):
         recommended_clothing = recommend_clothing()
         self.assertEqual(len(recommended_clothing), 1)
         self.assertEqual(recommended_clothing[0], '6fcef5f8-db9d-462c-8445-c1784c4b2f3b')
-
-

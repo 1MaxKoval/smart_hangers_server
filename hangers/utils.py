@@ -4,11 +4,15 @@ from hangers.models import CalendarEntry, SensorPoint, TemperatureAtLocation, Ha
 from hangers.api.exceptions import HangerAppError
 from typing import List, Tuple, Optional
 from django.utils import timezone
+import requests
+import os
 import math
 
 # Radius of the Earth
 R = 6381e3
 GSR_THRESHOLD = 250
+WEATHER_API = 'http://api.weatherapi.com/v1/current.json'
+API_KEY = os.getenv('WEATHER_API')
 
 
 def recommend_clothing() -> List[str]:
@@ -25,7 +29,7 @@ def recommend_clothing() -> List[str]:
     closest_sensor_point = find_location((event.latitude, event.longitude))
     # Use the environment temperature as the temperature estimate
     if closest_sensor_point is None:
-        return recommend_clothing_on_temp(get_environment_temperature((event.latitude, event.longitude)))
+        return recommend_clothing_on_temp(get_environment_temperature())
     else:
         clothing = recommend_clothing_on_temp(estimate_temperature(closest_sensor_point))
         return clothing
@@ -49,7 +53,7 @@ def recommend_clothing_on_temp(temperature: float = None) -> List[str]:
     return [piece_of_clothing.rfid for piece_of_clothing in appropriate_clothing]
 
 
-def get_environment_temperature(location: Tuple[float, float]) -> float:
+def get_environment_temperature(location:Tuple[float, float] = None) -> float:
     """
     Retrieves the temperature of the environment at a given location.
 
@@ -58,20 +62,26 @@ def get_environment_temperature(location: Tuple[float, float]) -> float:
     HangerAppError
         Thrown in the case the server is not able to fetch the temperature of the environment.
     """
-    environment_temperatures = TemperatureAtLocation.objects.all()
-    if len(environment_temperatures) != 0:
-        location_temp_obj = environment_temperatures[0]
+    if location is None:
+        environment_temperatures = TemperatureAtLocation.objects.all()
+        if len(environment_temperatures) != 0:
+            location_temp_obj = environment_temperatures[0]
+        else:
+            raise HangerAppError(detail={'error': 'Unable to fetch environment temperature'},
+                                 code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return location_temp_obj.temperature
     else:
-        raise HangerAppError(detail={'error': 'Unable to fetch environment temperature'},
-                             code=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    return location_temp_obj.temperature
+        request_payload = {'q': f'{location[0]},{location[1]}', 'key': API_KEY}
+        request = requests.get(WEATHER_API, params=request_payload)
+        fking_json = request.json()
+        return fking_json['current']['temp_c']
 
 
 def estimate_temperature(point: SensorPoint) -> float:
     """
     Estimates the temperature that the clothing should be suitable for.
     """
-    environment_temperature = get_environment_temperature((point.latitude, point.longitude))
+    environment_temperature = get_environment_temperature()
     objects_with_the_same_bssid = SensorPoint.objects.filter(mac_address__icontains=point.mac_address)
     total_temperature = 0
     total_gsr = 0
