@@ -15,6 +15,16 @@ WEATHER_API = 'http://api.weatherapi.com/v1/current.json'
 API_KEY = os.getenv('WEATHER_API')
 
 
+def get_temperature() -> float:
+    event = get_soonest_event()
+    closest_sensor_point = find_location((event.latitude, event.longitude))
+    # Use the environment temperature as the temperature estimate
+    if closest_sensor_point is None:
+        return get_environment_temperature()
+    else:
+        return estimate_temperature(closest_sensor_point)
+
+
 def recommend_clothing() -> List[str]:
     """
     Returns a list of clothing RFIDs depending on the upcoming event set in the Calendar.

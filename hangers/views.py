@@ -71,3 +71,8 @@ class TemperatureAtLocationView(APIView):
 @api_view(['GET'])
 def recommendations(request):
     return Response(data=utils.recommend_clothing())
+
+
+@api_view(['GET'])
+def temperature_estimate(request):
+    return Response(data={'estimated_temperature': utils.get_temperature()})

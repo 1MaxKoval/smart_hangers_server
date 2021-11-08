@@ -6,7 +6,8 @@ from hangers.api import viewsets
 urlpatterns = [
     path('temperature', views.TemperatureAtLocationView.as_view()),
     path('status', views.StatusView.as_view()),
-    path('recommendations', views.recommendations)
+    path('recommendations', views.recommendations),
+    path('temperature_estimate', views.temperature_estimate),
 ]
 
 # Registering the ViewSets
